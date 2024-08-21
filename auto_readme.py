@@ -15,6 +15,7 @@ class AutoReadme:
 
     def __init__(self, project_name, project_dir, author, model_name=None,
                  out_put_dir=None, readme_path=None, project_description=None, config_dir=None):
+        # TODO add language options
         self.project_name = project_name
         self.project_dir = project_dir
         self.project_description = project_description
@@ -55,12 +56,14 @@ class AutoReadme:
         save_content_to_file(json.dumps(scripts_description, indent=4),
                              os.path.join(self.out_put_dir, "SCRIPT_DESCRIPTION.json"))
 
-    def find_all_scripts(self):
+    def find_all_scripts_and_config_files(self):
         logging.info(f"Finding all scripts in {self.project_dir}")
         scripts = []
         for root, dirs, files in os.walk(self.project_dir):
             for file in files:
-                if file.endswith(".py") or file.endswith(".sh") or file.endswith(".bash"):
+                if ((file.endswith(".py") or file.endswith(".sh") or file.endswith(".bash") or
+                     (file.endswith(".json") and "config" in root.lower()))
+                        and os.path.isfile(os.path.join(root, file))):
                     scripts.append(os.path.join(root, file))
         logging.info(f"Found {len(scripts)} scripts")
         for script in scripts:
@@ -69,7 +72,7 @@ class AutoReadme:
 
     def generate_description_of_all_scripts(self):
         logging.info("Generating description of all scripts")
-        scripts = self.find_all_scripts()
+        scripts = self.find_all_scripts_and_config_files()
         script_description = {}
         for script in scripts:
             description = self.generate_file_description(script)
@@ -127,9 +130,10 @@ class AutoReadme:
         environment_requirements = self.generate_environment_requirements()
         environment_requirements_str = "\n".join(environment_requirements)
         logging.info("Generating project requirements")
-        scripts = self.find_all_scripts()
+        scripts = self.find_all_scripts_and_config_files()
         import_code_lines = []
         for script in scripts:
+            logging.debug(f"Reading script: {script}")
             with open(script, "r") as f:
                 content = f.read()
             import_code_lines.extend(self.find_imports(content))
@@ -247,40 +251,39 @@ def sample():
 
 
 if __name__ == "__main__":
-    sample()
-    # # Set up command-line argument parsing
-    # parser = argparse.ArgumentParser(description="Generate README and dependencies using AutoReadme.")
-    #
-    # # Required arguments with default values
-    # parser.add_argument('--project_name', type=str, help="Name of the project.")
-    # parser.add_argument('--project_dir', type=str, help="Directory of the project.")
-    # parser.add_argument('--author', type=str, help="Author of the project.")
-    #
-    # # Optional arguments with defaults set to None
-    # parser.add_argument('--model_name', type=str, default=None, help="Model name for AutoReadme.")
-    # parser.add_argument('--out_put_dir', type=str, default=None, help="Directory for dependencies.")
-    # parser.add_argument('--readme_path', type=str, default=None, help="Path to the README file.")
-    # parser.add_argument('--project_description', type=str, default=None, help="Description of the project.")
-    # parser.add_argument('--config_dir', type=str, default=None, help="Directory for configuration files.")
-    #
-    # # Parse the arguments
-    # args = parser.parse_args()
-    #
-    # # Set up logging
-    # logging.basicConfig(level=logging.INFO)
-    #
-    # # Initialize AutoReadme with the provided arguments
-    # auto_readme = AutoReadme(
-    #     project_name=args.project_name,
-    #     project_dir=args.project_dir,
-    #     author=args.author,
-    #     model_name=args.model_name,
-    #     out_put_dir=args.out_put_dir,
-    #     readme_path=args.readme_path,
-    #     project_description=args.project_description,
-    #     config_dir=args.config_dir
-    # )
-    #
-    # # Generate dependency and README files
-    # auto_readme.generate_dependency()
-    # auto_readme.generate_readme()
+    # Set up command-line argument parsing
+    parser = argparse.ArgumentParser(description="Generate README and dependencies using AutoReadme.")
+
+    # Required arguments with default values
+    parser.add_argument('--project_name', type=str, help="Name of the project.")
+    parser.add_argument('--project_dir', type=str, help="Directory of the project.")
+    parser.add_argument('--author', type=str, help="Author of the project.")
+
+    # Optional arguments with defaults set to None
+    parser.add_argument('--model_name', type=str, default=None, help="Model name for AutoReadme.")
+    parser.add_argument('--out_put_dir', type=str, default=None, help="Directory for dependencies.")
+    parser.add_argument('--readme_path', type=str, default=None, help="Path to the README file.")
+    parser.add_argument('--project_description', type=str, default=None, help="Description of the project.")
+    parser.add_argument('--config_dir', type=str, default=None, help="Directory for configuration files.")
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Set up logging
+    logging.basicConfig(level=logging.INFO)
+
+    # Initialize AutoReadme with the provided arguments
+    auto_readme = AutoReadme(
+        project_name=args.project_name,
+        project_dir=args.project_dir,
+        author=args.author,
+        model_name=args.model_name,
+        out_put_dir=args.out_put_dir,
+        readme_path=args.readme_path,
+        project_description=args.project_description,
+        config_dir=args.config_dir
+    )
+
+    # Generate dependency and README files
+    auto_readme.generate_dependency()
+    auto_readme.generate_readme()
