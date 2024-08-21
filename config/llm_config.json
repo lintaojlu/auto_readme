@@ -1,0 +1,16 @@
+{
+  "OPENAI_CONFIG": {
+    "OPENAI_KEYS_BASES": [
+      {
+        "OPENAI_KEY": "your_openai_key",
+        "OPENAI_BASE": "https://api.openai.com/v1"
+      },
+      {
+        "OPENAI_KEY": "your_openai_key",
+        "OPENAI_BASE": ""
+      }
+    ],
+    "OPENAI_TEMPERATURE": 0.5,
+    "OPENAI_MAX_TOKENS": 4096
+  }
+}
