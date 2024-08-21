@@ -1,4 +1,5 @@
 # Author: Lintao
+import argparse
 import json
 import logging
 import os
@@ -147,10 +148,39 @@ def save_content_to_file(content, file_path):
 
 
 if __name__ == "__main__":
+    # Set up command-line argument parsing
+    parser = argparse.ArgumentParser(description="Generate README and dependencies using AutoReadme.")
+
+    # Required arguments with default values
+    parser.add_argument('--program_name', type=str, help="Name of the program.")
+    parser.add_argument('--program_dir', type=str, help="Directory of the program.")
+    parser.add_argument('--author', type=str, help="Author of the program.")
+
+    # Optional arguments with defaults set to None
+    parser.add_argument('--model_name', type=str, default=None, help="Model name for AutoReadme.")
+    parser.add_argument('--dependency_dir', type=str, default=None, help="Directory for dependencies.")
+    parser.add_argument('--readme_path', type=str, default=None, help="Path to the README file.")
+    parser.add_argument('--program_description', type=str, default=None, help="Description of the program.")
+    parser.add_argument('--config_dir', type=str, default=None, help="Directory for configuration files.")
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Set up logging
     logging.basicConfig(level=logging.INFO)
-    program_name = "AutoReadme"
-    program_dir = ROOT_DIR
-    author = "Lintao"
-    auto_readme = AutoReadme(program_name, program_dir, author, model_name="gpt-4o")
+
+    # Initialize AutoReadme with the provided arguments
+    auto_readme = AutoReadme(
+        program_name=args.program_name,
+        program_dir=args.program_dir,
+        author=args.author,
+        model_name=args.model_name,
+        dependency_dir=args.dependency_dir,
+        readme_path=args.readme_path,
+        program_description=args.program_description,
+        config_dir=args.config_dir
+    )
+
+    # Generate dependency and README files
     auto_readme.generate_dependency()
     auto_readme.generate_readme()
