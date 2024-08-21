@@ -12,7 +12,7 @@ requirements.txt, for a given project directory. It aims to simplify the documen
 and producing comprehensive documentation with minimal user intervention. If any information is missing, it will be
 filled in with placeholders (`<>`).
 
-AutoReadme 是一款基于 Python 的工具，旨在自动生成项目文档，包括 README 文件和项目结构描述。 该工具利用语言模型 API
+AutoReadme 是一款基于 Python 的工具，旨在自动生成项目文档，包括 README 文件、requirements.txt和项目结构描述。 该工具利用语言模型 API
 生成脚本和项目细节描述，一键生成，省心省力。任何未知信息将按照`<>`填充。
 
 ## Installation
