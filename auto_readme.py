@@ -1,5 +1,6 @@
 # Author: Lintao
 import argparse
+import fnmatch
 import json
 import logging
 import os
@@ -56,15 +57,40 @@ class AutoReadme:
         save_content_to_file(json.dumps(scripts_description, indent=4),
                              os.path.join(self.out_put_dir, "SCRIPT_DESCRIPTION.json"))
 
+    def load_ignore_files(self):
+        logging.info("Loading ignore files")
+        ignore_files = []
+        gitignore_path = os.path.join(self.project_dir, ".gitignore")
+        if os.path.exists(gitignore_path):
+            with open(gitignore_path, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        ignore_files.append(line)
+        logging.debug(ignore_files)
+        return ignore_files
+
+    def is_ignored(self, filepath, ignore_files):
+        relative_path = os.path.relpath(filepath, self.project_dir)  # get the relative path of the file
+        for pattern in ignore_files:
+            if fnmatch.fnmatch(relative_path, pattern):
+                logging.debug(f"Ignored: {relative_path}")
+                return True
+        logging.debug(f"Not ignored: {relative_path}")
+        return False
+
     def find_all_scripts_and_config_files(self):
         logging.info(f"Finding all scripts in {self.project_dir}")
+        ignore_files = self.load_ignore_files()
         scripts = []
         for root, dirs, files in os.walk(self.project_dir):
             for file in files:
-                if ((file.endswith(".py") or file.endswith(".sh") or file.endswith(".bash") or
-                     (file.endswith(".json") and "config" in root.lower()))
-                        and os.path.isfile(os.path.join(root, file))):
-                    scripts.append(os.path.join(root, file))
+                filepath = os.path.join(root, file)
+                if not self.is_ignored(filepath, ignore_files):
+                    if ((file.endswith(".py") or file.endswith(".sh") or file.endswith(".bash") or
+                         (file.endswith(".json") and "config" in root.lower()))
+                            and os.path.isfile(filepath)):
+                        scripts.append(filepath)
         logging.info(f"Found {len(scripts)} scripts")
         for script in scripts:
             logging.debug(script)
@@ -80,14 +106,20 @@ class AutoReadme:
             logging.info(f"Description of {script}: {str(description)[:20].strip()}...{str(description)[-20:].strip()}")
         return script_description
 
-    def generate_project_structure(self, dir_path, indent_level=0):
-        # TODO ignore files in .gitignore
+    def generate_project_structure(self, dir_path, indent_level=0, ignore_files=None):
+        if ignore_files is None:
+            ignore_files = self.load_ignore_files()
+
         markdown_lines = []
         for item in sorted(os.listdir(dir_path)):
             item_path = os.path.join(dir_path, item)
+            # Skip ignored files and directories
+            if self.is_ignored(item_path, ignore_files):
+                continue
+
             if os.path.isdir(item_path):
                 markdown_lines.append(f"{'  ' * indent_level}- **{item}/**")
-                markdown_lines.extend(self.generate_project_structure(item_path, indent_level + 1))
+                markdown_lines.extend(self.generate_project_structure(item_path, indent_level + 1, ignore_files))
             else:
                 markdown_lines.append(f"{'  ' * indent_level}- {item}")
         return markdown_lines
