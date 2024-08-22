@@ -54,8 +54,8 @@ class AutoReadme:
         scripts_description = self.generate_description_of_all_scripts()
         logging.info(f'Scripts description:')
         logging.info(scripts_description)
-        save_content_to_file(json.dumps(scripts_description, indent=4),
-                             os.path.join(self.out_put_dir, "SCRIPT_DESCRIPTION.json"))
+        with open(os.path.join(self.out_put_dir, "SCRIPT_DESCRIPTION.json"), "w", encoding='utf-8') as f:
+            json.dump(scripts_description, f, ensure_ascii=False, indent=4)
 
     def load_ignore_files(self):
         logging.info("Loading ignore files")
@@ -103,7 +103,9 @@ class AutoReadme:
         for script in scripts:
             description = self.generate_file_description(script)
             script_description[script] = description
-            logging.info(f"Description of {script}: {str(description)[:20].strip()}...{str(description)[-20:].strip()}")
+            brief_start = str(description)[:20].replace('\n', '')
+            brief_end = str(description)[-20:].replace('\n', '')
+            logging.info(f"Description of {script}: {brief_start}...{brief_end}")
         return script_description
 
     def generate_project_structure(self, dir_path, indent_level=0, ignore_files=None):
@@ -223,7 +225,7 @@ class AutoReadme:
 
     def generate_readme(self):
         sys_instruction = (
-            "Please generate a README file for this project that includes the following sections, and if specific details are unknown, set <> as placeholders: "
+            "Generate a comprehensive README file for this project that includes, but is not limited to the following sections. If specific details are unknown, set <> as placeholders: "
             "1. Project Title: The name of the project."
             "2. Description: A brief overview of the project's purpose, features, and key functionalities."
             "3. Installation: Step-by-step instructions on how to install and set up the project, including any dependencies."
@@ -260,7 +262,7 @@ class AutoReadme:
 
 
 def save_content_to_file(content, file_path):
-    with open(file_path, "w") as f:
+    with open(file_path, "w", encoding='utf-8') as f:
         f.write(content)
         logging.info(f"Content has been saved to {file_path}")
 
