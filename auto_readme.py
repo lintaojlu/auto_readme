@@ -15,12 +15,12 @@ class AutoReadme:
     """
 
     def __init__(self, project_name, project_dir, author, model_name=None,
-                 out_put_dir=None, readme_path=None, project_description=None, config_dir=None):
-        # TODO add language options
+                 out_put_dir=None, readme_path=None, project_description=None, config_dir=None, language="en"):
         self.project_name = project_name
         self.project_dir = project_dir
         self.project_description = project_description
         self.project_author = author
+        self.language = language
         if not model_name:
             model_name = "gpt-4o"
 
@@ -197,6 +197,8 @@ class AutoReadme:
             ' including its input and output parameters, key algorithms or logic.'
             ' Ensure the description is clear and concise, suitable for technical documentation or code comments.'
         )
+        if self.language == "cn":
+            sys_instruction += "用中文回答。"
         prompt = [{"role": "system", "content": sys_instruction}, {"role": "user", "content": script_content}]
         logging.debug(f'prompt: {prompt}')
         answer = get_model_answer(model_name=self.model, inputs_list=prompt, config_dir=self.config_dir)
@@ -233,6 +235,8 @@ class AutoReadme:
             "8. Contact Information: How to reach the maintainers or developers for support or inquiries."
             "Ensure that the README is clear, well-organized, and helpful for both new users and contributors."
         )
+        if self.language == "cn":
+            sys_instruction += "用中文回答。"
         dependencies = self.get_dependency_content()
         if dependencies == {}:
             logging.error("No dependency files found. Please run 'generate_dependency' first.")
@@ -298,6 +302,10 @@ if __name__ == "__main__":
     parser.add_argument('--project_description', type=str, default=None, help="Description of the project.")
     parser.add_argument('--config_dir', type=str, default=None, help="Directory for configuration files.")
 
+    # New optional 'language' argument
+    parser.add_argument('--language', type=str, choices=['cn', 'en'], default='en',
+                        help="Language for the project. Options: 'cn' or 'en'. Default is 'en'.")
+
     # Parse the arguments
     args = parser.parse_args()
 
@@ -313,7 +321,8 @@ if __name__ == "__main__":
         out_put_dir=args.out_put_dir,
         readme_path=args.readme_path,
         project_description=args.project_description,
-        config_dir=args.config_dir
+        config_dir=args.config_dir,
+        language=args.language
     )
 
     # Generate dependency and README files
